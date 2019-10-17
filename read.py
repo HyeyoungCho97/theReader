@@ -1,15 +1,30 @@
 # import the necessary packages
 import argparse
 import configparser
-import cv2
-from imutils.object_detection import non_max_suppression
+import cv2  
 import numpy as np
 import os
-from PIL import Image 
-from pytesseract import *
+import pygame
 import time
 
+from gtts import gTTS
+from imutils.object_detection import non_max_suppression
+from PIL import Image
+from pytesseract import *
+
+
 tesseract_cmd = 'tesseract'
+
+def writeFile(text):
+
+    
+    f = open("now.txt", 'w')
+    #loop over the results
+    for (startX, startY, endX, endY, text) in text:
+
+        f.write(text)
+        
+    f.close()
 
 def recognize(img):
 
@@ -159,28 +174,68 @@ def recognize(img):
   
     # sort the results bounding box coordinates from top to bottom
     results = sorted(results, key=lambda r:r[1])
-    
-    
-    #loop over the results
-    for (startX, startY, endX, endY, text) in results:
-
-        # display the text OCR'd by Tesseract
-        print(text)
+    writeFile(results)
     
     # strip out non-ASCII text so we can draw the text on the image
     # using OpenCV, then draw the text and a bounding box surrounding
     # the text region of the input image
     #text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-  
-    return results
+def writeFile(results):
+    print(results)
+    ff = 0
+    for (startX, startY, endX, endY, text) in results:
+        print('re')
+        if ff is 0:
+            f = open("now.txt", "w+")
+            ff = 1
+        if ff is 1:
+            f = open("now.txt", "a")
+        f.write(text)
+        f.close()
+
+    FLIST = open("now.txt", "r").read().replace("\n", " ").replace('_', '  ').replace('|', '  ')
+    print("please wait... reading")
+
+    TTS = gTTS(text = str(FLIST), lang='ko')
+
+    TTS.save("now.mp3")
+    
+
+
+def play(music, freq):
+
+    bitsize = -16
+    channels = 1
+    buffer = 2048
+
+    pygame.mixer.init(freq, bitsize, channels, buffer)
+    pygame.mixer.music.load(music)
+    pygame.mixer.music.play()
+
+    clock = pygame.time.Clock()
+    while pygame.mixer.music.get_busy():
+        clock.tick(30)
+    pygame.mixer.quit()
+
+    #os.system("book_s.m4a")
 
 
 
 def read(flag, img):
 
     flag = 1
-    text = recognize(img)
-    
+    recognize(img)
+    play("now.mp3", 24000)
+    '''
+    #init now.txt
+    a = []
+    a.append((0, 0, 0, 0, '못 읽었어요'))
+    writeFile(a)
+    '''
+    play("book_s2.wav", 44100)
+
+    time.sleep(10)
+    flag=0
 
     return flag
 
