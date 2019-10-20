@@ -61,7 +61,7 @@ while True:
     hand = isHand(frame)
     print(hand)
     
-    # gesture 
+    # gesture if hand is...
     if hand is 5:
 
         read_flag = 1
@@ -70,6 +70,13 @@ while True:
     if hand is 8:
 
         read_flag = 0
+
+    if hand is 2:
+        
+        translate('now.txt','en')
+        txt2mp3('trans_en', 'en')
+        play('trans_en.mp3', 24000)
+
 
     #read
     if read_flag is 0:

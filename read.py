@@ -5,8 +5,10 @@ import cv2
 import numpy as np
 import os
 import pygame
+import re
 import time
 
+from googletrans import Translator
 from gtts import gTTS
 from imutils.object_detection import non_max_suppression
 from PIL import Image
@@ -28,9 +30,9 @@ def writeFile(text):
 
 def recognize(img):
 
-    width = 1280
-    height = 1280
-    padding = 0.11
+    width = 1600
+    height = 1600
+    padding = 0.5
     
     # load the input image and grab the image dimensions
     orig = img.copy()
@@ -173,33 +175,51 @@ def recognize(img):
         results.append((startX, startY, endX, endY, text))
   
     # sort the results bounding box coordinates from top to bottom
-    results = sorted(results, key=lambda r:r[1])
-    writeFile(results)
+    results = sorted(results, key=lambda r:r[0])
+    writeFile('now', results)
+    txt2mp3('now', 'ko')
     
     # strip out non-ASCII text so we can draw the text on the image
     # using OpenCV, then draw the text and a bounding box surrounding
     # the text region of the input image
     #text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-def writeFile(results):
+    
+
+def writeFile(file, results):
+
     print(results)
     ff = 0
+
     for (startX, startY, endX, endY, text) in results:
-        print('re')
+        
+        # remove except korean
+        kor = re.compile('[^ \u3131-\u3163\uac00-\ud7a3]+')
+        num = re.compile('[^0-9]')
+        spchar = re.compile('[-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]')
+
+        result = spchar.sub('', text)
+        result = text.strip(num.sub('', result))
+        result = kor.sub('', result)
+
         if ff is 0:
-            f = open("now.txt", "w+")
+            f = open( file+'.txt', "w+")
             ff = 1
         if ff is 1:
-            f = open("now.txt", "a")
-        f.write(text)
+            f = open( file+'.txt', "a")
+        
+        f.write(result)
         f.close()
 
-    FLIST = open("now.txt", "r").read().replace("\n", " ").replace('_', '  ').replace('|', '  ')
+
+def txt2mp3(file, lan):
+
+    FLIST = open(file+'.txt', "r").read()
+
     print("please wait... reading")
 
-    TTS = gTTS(text = str(FLIST), lang='ko')
+    TTS = gTTS(text = str(FLIST), lang=lan)
 
-    TTS.save("now.mp3")
-    
+    TTS.save( file+'.mp3' )
 
 
 def play(music, freq):
@@ -220,6 +240,18 @@ def play(music, freq):
     #os.system("book_s.m4a")
 
 
+def translate(file, lang):
+
+    translator = Translator()
+
+    FLIST = open(file, "r").read()
+
+    tr_results = translator.translate(text=str(FLIST), src='ko', dest=lang)
+    
+    FLIST = open('trans_'+lang+'.txt', "w")
+    FLIST.write(str(tr_results.text))
+    FLIST.close()
+
 
 def read(flag, img):
 
@@ -234,7 +266,7 @@ def read(flag, img):
     '''
     play("book_s2.wav", 44100)
 
-    time.sleep(10)
+    #time.sleep(1)
     flag=0
 
     return flag
