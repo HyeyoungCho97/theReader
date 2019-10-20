@@ -59,7 +59,19 @@ while True:
 
     # find gesture 
     hand = isHand(frame)
-    #print(hand)
+    print(hand)
+    
+    # gesture 
+    if hand is 5:
+
+        read_flag = 1
+        play("stop.mp3", 24000)
+
+    if hand is 8:
+
+        read_flag = 0
+
+    #read
     if read_flag is 0:
         read_flag = read(read_flag, orig)
     
